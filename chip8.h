@@ -20,4 +20,12 @@ typedef struct {
     uint8_t variante;
 }Instruccion;
 
+void inicializar(Chip8 *cpu);
+
+uint16_t fetch(Chip8 *cpu);
+
+Instruccion decode(uint16_t opcode, Chip8 *cpu);
+
+void execute(Instruccion instruccion, Chip8 *cpu);
+
 #endif
