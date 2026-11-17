@@ -31,11 +31,19 @@ void inicializar(Chip8 *cpu) {
     for (int i = 0; i<80; i++){
         cpu->memoria[i] = fontset[i];
     }
+    printf("CPU INICIALIZADA\n");
+}
+
+void insertProg(uint8_t programa[],int size,Chip8 *cpu){
+    for(int i = 0; i<size; i++){
+        cpu->memoria[0x200 + i] = programa[i];
+    }
 }
 
 uint16_t fetch(Chip8 *cpu){
     uint16_t op = ((uint16_t)cpu->memoria[cpu->PC] << 8) | cpu->memoria[cpu->PC + 1];
     cpu->PC += 2;
+    printf("op: %x\n",op);
     return op;
 }
 
@@ -73,7 +81,7 @@ Instruccion decode(uint16_t opcode){
         break;
     
     default:
-        printf("OPERATION NOT ACCEPTED");
+        printf("\n\nOPERATION NOT ACCEPTED\n\n");
         break;
     }
 
@@ -87,7 +95,7 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
             switch(instruccion.direccion)
             {
                 case 0x0E0://LIMPIAR PANTALLA
-                    
+                    memset(cpu->pantalla,0,sizeof(cpu->pantalla));
                     break;
                 
                 case 0x0EE://RETURN
@@ -96,7 +104,7 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                     break;
                 
                 default:
-                    printf("INVALID 0x0 INSTRUCTION");
+                    printf("\n\nINVALID 0x0 INSTRUCTION\n\n");
 
             }
             break;
@@ -194,7 +202,7 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                     break;
                 
                 default:
-                    printf("INVALID 0x8 INSTRUCTION");
+                    printf("\n\nINVALID 0x8 INSTRUCTION\n\n");
             }
             
             break;
@@ -218,8 +226,32 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
             break;
 
         case 0xD://DRAW
-            
+        {
+            uint8_t xini = cpu->v[instruccion.registros[0]] / 8;
+            uint8_t yini = cpu->v[instruccion.registros[1]];  
+            uint8_t n = instruccion.variante;
+
+            for(int i = 0; i < n; i++){
+                uint8_t bitini = cpu->v[instruccion.registros[0]] % 8;
+                uint8_t byte = cpu->memoria[cpu->I + i];
+                if(bitini != 0){
+                    uint8_t izda =  byte >> bitini;
+                    uint8_t dcha =  byte << (8 - bitini);
+                    if((cpu->pantalla[(yini+i)%32][xini] & izda) != 0 || (cpu->pantalla[(yini+i)%32][(xini+1)%8] & dcha) != 0){
+                        cpu->v[0xF] = 1;
+                    }
+                    cpu->pantalla[(yini+i)%32][xini] = (cpu->pantalla[(yini+i)%32][xini] ^ izda);
+                    cpu->pantalla[(yini+i)%32][(xini+1)%8] = (cpu->pantalla[(yini+i)%32][(xini+1)%8] ^ dcha);
+                }
+                else{
+                    if((cpu->pantalla[(yini+i)%32][xini] & byte) != 0){
+                        cpu->v[0xF] = 1;
+                    }
+                    cpu->pantalla[(yini+i)%32][xini] = cpu->pantalla[(yini+i)%32][xini] ^ byte;
+                }
+            }
             break;
+        }
 
         case 0xE://SKIPS TECLADO
             switch(instruccion.byte)
@@ -240,7 +272,9 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
             
         case 0xF://TIMERS
             
-        
             break;
+
+        default:
+            printf("\n\nINSTRUCCION NO VALIDA\n\n");
     }
 }

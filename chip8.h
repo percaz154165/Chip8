@@ -24,6 +24,8 @@ typedef struct {
 
 void inicializar(Chip8 *cpu);
 
+void insertProg(uint8_t programa[],int size,Chip8 *cpu);
+
 uint16_t fetch(Chip8 *cpu);
 
 Instruccion decode(uint16_t opcode);
