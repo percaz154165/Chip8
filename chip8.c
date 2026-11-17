@@ -36,3 +36,43 @@ uint16_t fetch(Chip8 *cpu){
     return op;
 }
 
+Instruccion decode(uint16_t opcode){
+    Instruccion instruccion;
+    instruccion.familia = (opcode & 0xF000) >> 12;
+    switch (instruccion.familia)
+    {
+    case 0:
+    case 1:
+    case 2:
+    case 0xA:
+    case 0xB:
+        instruccion.direccion = (opcode & 0x0FFF);
+        break;
+
+    case 3:
+    case 4:
+    case 6:
+    case 7:
+    case 0xC:
+    case 0xE:
+    case 0xF:
+        instruccion.registros[0] = (opcode & 0x0F00) >> 8;
+        instruccion.byte = (opcode & 0x00FF);
+        break;
+
+    case 5:
+    case 8:
+    case 9:
+    case 0xD:
+        instruccion.registros[0] = (opcode & 0x0F00) >> 8;
+        instruccion.registros[1] = (opcode & 0x00F0) >> 4;
+        instruccion.variante = (opcode & 0x000F);
+        break;
+    
+    default:
+        printf("OPERATION NOT ACCEPTED");
+        break;
+    }
+
+    return instruccion; 
+}

@@ -18,13 +18,15 @@ typedef struct {
     uint8_t familia;
     uint8_t registros[2];
     uint8_t variante;
+    uint16_t direccion;
+    uint8_t byte;
 }Instruccion;
 
 void inicializar(Chip8 *cpu);
 
 uint16_t fetch(Chip8 *cpu);
 
-Instruccion decode(uint16_t opcode, Chip8 *cpu);
+Instruccion decode(uint16_t opcode);
 
 void execute(Instruccion instruccion, Chip8 *cpu);
 
