@@ -271,7 +271,66 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
             break;
             
         case 0xF://TIMERS
-            
+            switch(instruccion.byte)
+            {
+                case 0x07://LOAD dt a reg
+                    cpu->v[instruccion.registros[0]] = cpu->DT;
+                    break;
+                
+                case 0x0A://WAIT KEY
+                    if(cpu->teclado == 0){
+                        cpu->PC -= 2;
+                    }
+                    else{
+                        for(int i = 0; i < 16; i++){
+                            if(cpu->teclado & (1 << i)){
+                                cpu->v[instruccion.registros[0]] = i;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+
+                case 0x15: //LOAD reg a dt
+                    cpu->DT = cpu->v[instruccion.registros[0]];
+                    break;
+                
+                case 0x18://LOAD reg a st
+                    cpu->ST = cpu->v[instruccion.registros[0]];
+                    break;
+                
+                case 0x1E://ADD reg a I
+                    cpu->I = cpu->I + cpu->v[instruccion.registros[0]];
+                    break;
+
+                case 0x29://CARGAR SPRITE
+                    cpu->I = 5 * cpu->v[instruccion.registros[0]];
+                    break;
+                
+                case 0x33://DECIMALES A BINARIO
+                {
+                    int units = cpu->v[instruccion.registros[0]] % 10;
+                    int decs = cpu->v[instruccion.registros[0]] / 10;
+                    int cents = cpu->v[instruccion.registros[0]] / 100;
+
+                    cpu->memoria[cpu->I] = cents;
+                    cpu->memoria[cpu->I+1] = decs;
+                    cpu->memoria[cpu->I+2] = units;
+                    break;
+                }
+
+                case 0x55://ST REGS A MEM
+                    for(int i = 0; i<16; i++){
+                        cpu->memoria[cpu->I + i] = cpu->v[i];
+                    }
+                    break;
+                    
+                case 0x65://ST MEM A REGS
+                    for(int i = 0; i<16; i++){
+                        cpu->v[i] = cpu->memoria[cpu->I + i];
+                    }
+                    break;
+            }
             break;
 
         default:

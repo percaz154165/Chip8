@@ -12,6 +12,8 @@ typedef struct {
     uint16_t stack[16];
     uint16_t teclado;
     uint8_t pantalla[32][8];
+    uint8_t DT;
+    uint8_t ST;
 }Chip8;
 
 typedef struct {

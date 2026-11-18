@@ -30,26 +30,27 @@ int main(int argc, char* argv[]) {
     int size = sizeof(programa);
 
     srand((unsigned int)time(NULL));
-    // if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    //     printf("SDL_Init Error: %s\n", SDL_GetError());
-    //     return 1;
-    // }
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        printf("SDL_Init Error: %s\n", SDL_GetError());
+        return 1;
+    }
 
-    // SDL_Window *win = SDL_CreateWindow("TEST",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN);
-    // SDL_Delay(3000); // Wait for 3 seconds before closing the window
-    // SDL_DestroyWindow(win);
-    // SDL_Quit();
+    SDL_Window *win = SDL_CreateWindow("TEST",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 320, SDL_WINDOW_SHOWN);
     Chip8 cpu;
     inicializar(&cpu);
     insertProg(programa, size, &cpu);
     uint16_t op;
     Instruccion inst;
-    int i = 0;
+
+
     while(1){
         op = fetch(&cpu);
         inst = decode(op);
         execute(inst, &cpu);
     }
+
+    // SDL_DestroyWindow(win);
+    // SDL_Quit();
     return 0;
 }
 
