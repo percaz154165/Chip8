@@ -43,7 +43,7 @@ void insertProg(uint8_t programa[],int size,Chip8 *cpu){
 uint16_t fetch(Chip8 *cpu){
     uint16_t op = ((uint16_t)cpu->memoria[cpu->PC] << 8) | cpu->memoria[cpu->PC + 1];
     cpu->PC += 2;
-    printf("op: %x\n",op);
+    printf("op: %04x\n",op);
     return op;
 }
 
@@ -104,7 +104,8 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                     break;
                 
                 default:
-                    printf("\n\nINVALID 0x0 INSTRUCTION\n\n");
+                    printf("\n\nINVALID 0x0 INSTRUCTION\n\n ");
+                    break;
 
             }
             break;
@@ -227,32 +228,32 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
 
         case 0xD://DRAW
         {
-            uint8_t xini = cpu->v[instruccion.registros[0]] / 8;
-            uint8_t yini = cpu->v[instruccion.registros[1]];  
+            uint8_t xini = cpu->v[instruccion.registros[0]];
+            uint8_t yini = cpu->v[instruccion.registros[1]];
             uint8_t n = instruccion.variante;
+            cpu->v[0xF] = 0;
 
-            for(int i = 0; i < n; i++){
-                uint8_t bitini = cpu->v[instruccion.registros[0]] % 8;
-                uint8_t byte = cpu->memoria[cpu->I + i];
-                if(bitini != 0){
-                    uint8_t izda =  byte >> bitini;
-                    uint8_t dcha =  byte << (8 - bitini);
-                    if((cpu->pantalla[(yini+i)%32][xini] & izda) != 0 || (cpu->pantalla[(yini+i)%32][(xini+1)%8] & dcha) != 0){
-                        cpu->v[0xF] = 1;
+            printf("REG%d: %d, REG%d: %d\n\n",instruccion.registros[0],xini,instruccion.registros[1],yini);
+
+            for(int row = 0; row < n; row++){
+                uint8_t sprite = cpu->memoria[cpu->I + row];
+                uint8_t y = (yini + row) % 32;
+
+                for(int bit = 0; bit < 8; bit++){
+                    if((sprite & (0x80 >> bit)) != 0){
+                        uint8_t x = (xini + bit) % 64;
+                        uint8_t byte = 1 << (7 - (x % 8));
+
+                        if((cpu->pantalla[y][x / 8] & byte) != 0){
+                            cpu->v[0xF] = 1;
+                        }
+                        cpu->pantalla[y][x / 8] ^= byte;
                     }
-                    cpu->pantalla[(yini+i)%32][xini] = (cpu->pantalla[(yini+i)%32][xini] ^ izda);
-                    cpu->pantalla[(yini+i)%32][(xini+1)%8] = (cpu->pantalla[(yini+i)%32][(xini+1)%8] ^ dcha);
                 }
-                else{
-                    if((cpu->pantalla[(yini+i)%32][xini] & byte) != 0){
-                        cpu->v[0xF] = 1;
-                    }
-                    cpu->pantalla[(yini+i)%32][xini] = cpu->pantalla[(yini+i)%32][xini] ^ byte;
-                }
+                printf("%08b\n",sprite);
             }
             break;
         }
-
         case 0xE://SKIPS TECLADO
             switch(instruccion.byte)
             {
@@ -278,13 +279,16 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                     break;
                 
                 case 0x0A://WAIT KEY
+                    printf("FX0A - TECLADO: %04X\n", cpu->teclado);
                     if(cpu->teclado == 0){
                         cpu->PC -= 2;
                     }
                     else{
-                        for(int i = 0; i < 16; i++){
+                        for(int i = 0; i < 15; i++){
                             if(cpu->teclado & (1 << i)){
                                 cpu->v[instruccion.registros[0]] = i;
+                                printf("V%d = %d\n", instruccion.registros[0],cpu->v[instruccion.registros[0]]);
+
                                 break;
                             }
                         }
@@ -320,13 +324,13 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                 }
 
                 case 0x55://ST REGS A MEM
-                    for(int i = 0; i<16; i++){
+                    for(int i = 0; i <= instruccion.registros[0]; i++){
                         cpu->memoria[cpu->I + i] = cpu->v[i];
                     }
                     break;
                     
                 case 0x65://ST MEM A REGS
-                    for(int i = 0; i<16; i++){
+                    for(int i = 0; i <= instruccion.registros[0]; i++){
                         cpu->v[i] = cpu->memoria[cpu->I + i];
                     }
                     break;
@@ -336,4 +340,16 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
         default:
             printf("\n\nINSTRUCCION NO VALIDA\n\n");
     }
+}
+
+
+void logKey(uint8_t key, bool pressed, Chip8 *cpu){
+    if(pressed){
+        cpu->teclado = cpu->teclado | (1 << key);
+    }
+    else{
+        cpu->teclado = cpu->teclado & ~(1 << key);
+    }
+
+    printf("TECLADO: %04x\n", cpu->teclado);
 }

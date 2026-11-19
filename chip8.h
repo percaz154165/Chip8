@@ -34,4 +34,6 @@ Instruccion decode(uint16_t opcode);
 
 void execute(Instruccion instruccion, Chip8 *cpu);
 
+void logKey(uint8_t key, bool pressed, Chip8 *cpu);
+
 #endif
