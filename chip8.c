@@ -43,7 +43,6 @@ void insertProg(uint8_t programa[],int size,Chip8 *cpu){
 uint16_t fetch(Chip8 *cpu){
     uint16_t op = ((uint16_t)cpu->memoria[cpu->PC] << 8) | cpu->memoria[cpu->PC + 1];
     cpu->PC += 2;
-    printf("op: %04x\n",op);
     return op;
 }
 
@@ -233,7 +232,6 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
             uint8_t n = instruccion.variante;
             cpu->v[0xF] = 0;
 
-            printf("REG%d: %d, REG%d: %d\n\n",instruccion.registros[0],xini,instruccion.registros[1],yini);
 
             for(int row = 0; row < n; row++){
                 uint8_t sprite = cpu->memoria[cpu->I + row];
@@ -250,7 +248,6 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                         cpu->pantalla[y][x / 8] ^= byte;
                     }
                 }
-                printf("%08b\n",sprite);
             }
             break;
         }
@@ -279,15 +276,13 @@ void execute(Instruccion instruccion, Chip8 *cpu) {
                     break;
                 
                 case 0x0A://WAIT KEY
-                    printf("FX0A - TECLADO: %04X\n", cpu->teclado);
                     if(cpu->teclado == 0){
                         cpu->PC -= 2;
                     }
                     else{
-                        for(int i = 0; i < 15; i++){
+                        for(int i = 0; i <= 15; i++){
                             if(cpu->teclado & (1 << i)){
                                 cpu->v[instruccion.registros[0]] = i;
-                                printf("V%d = %d\n", instruccion.registros[0],cpu->v[instruccion.registros[0]]);
 
                                 break;
                             }
@@ -351,5 +346,5 @@ void logKey(uint8_t key, bool pressed, Chip8 *cpu){
         cpu->teclado = cpu->teclado & ~(1 << key);
     }
 
-    printf("TECLADO: %04x\n", cpu->teclado);
+    
 }
